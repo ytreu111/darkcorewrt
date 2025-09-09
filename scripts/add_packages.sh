@@ -31,3 +31,15 @@ function init_theme() {
 EOL
 sed -i -e '/boardname=/r /tmp/appendtext.txt' friendlywrt/target/linux/rockchip/armv8/base-files/root/setup.sh
 # }}
+
+# {{ Add DarkCore packages
+(cd friendlywrt/package && {
+    [ -d darkcore ] && rm -rf darkcore
+    git clone https://github.com/ytreu111/darkcore-packages.git darkcore --depth 1 -b main
+})
+cat >> configs/rockchip/01-nanopi <<EOL
+CONFIG_PACKAGE_darkcore-rules=y
+CONFIG_PACKAGE_darkcore-xray=y
+CONFIG_PACKAGE_geoupdate=y
+EOL
+# }}
