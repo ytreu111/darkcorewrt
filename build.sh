@@ -1,8 +1,8 @@
 #!/bin/bash
 
-WRT_DIR=friendlywrt24-rk3328
 SETUP_SCRIPT_PATH="friendlywrt/target/linux/rockchip/armv8/base-files/root/setup.sh"
 DEBUG=false
+DEVICE=rk3328
 
 for arg in "$@"
 do
@@ -11,16 +11,21 @@ do
         DEBUG=true
         shift
         ;;
+        --device=*)
+        DEVICE="${arg#*=}"
+        shift
+        ;;
         *)
         ;;
     esac
 done
 
+WRT_DIR=friendlywrt24-${DEVICE}
 
 function init_repo() {
   git clone https://github.com/friendlyarm/repo --depth 1 tools
   tools/repo init -u https://github.com/friendlyarm/friendlywrt_manifests -b master-v24.10 \
-      -m rk3328.xml --repo-url=https://github.com/friendlyarm/repo  --no-clone-bundle
+      -m ${DEVICE}.xml --repo-url=https://github.com/friendlyarm/repo  --no-clone-bundle
   tools/repo sync -c  --no-clone-bundle
 }
 
@@ -49,10 +54,10 @@ source ../scripts/add_packages.sh
 setup_initial_script
 
 MK_LINK=".current_config.mk"
-FOUND_MK_FILE=`find device/friendlyelec -name rk3328.mk | wc -l`
+FOUND_MK_FILE=`find device/friendlyelec -name ${DEVICE}.mk | wc -l`
 
 if [ $FOUND_MK_FILE -gt 0 ]; then
-  MK_FILE=`ls device/friendlyelec/*/rk3328.mk`
+  MK_FILE=`ls device/friendlyelec/*/${DEVICE}.mk`
   echo "using config ${MK_FILE}"
   rm -f ${MK_LINK}
   ln -s ${MK_FILE} ${MK_LINK}
@@ -78,6 +83,6 @@ if [ $FOUND_MK_FILE -gt 0 ]; then
 
   ./build.sh sd-img
 else
-  echo "no config rk3328 in device/friendlyelec"
+  echo "no config ${DEVICE} in device/friendlyelec"
   exit 1
 fi
